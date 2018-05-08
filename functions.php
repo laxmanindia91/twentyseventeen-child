@@ -24,7 +24,24 @@ function mytheme_add_woocommerce_support() {
 }
 add_action( 'after_setup_theme', 'mytheme_add_woocommerce_support' );
 
+function listify_child_styles() {
+    wp_enqueue_style( 'listify-child', get_stylesheet_uri() );
+}
+add_action( 'wp_enqueue_scripts', 'listify_child_styles', 999 );
+
 function theme_js() {
+	//wp_enqueue_style('parent-theme-style'); // parent theme code
+	//wp_enqueue_style( 'parent-style', get_template_directory_uri() . '/style.css' );
+	//wp_enqueue_style( 'my-style', get_stylesheet_directory_uri() . '/style.css', false, '1.0', 'all' );
+	// enqueue style
+	//wp_enqueue_style('twentysixteen-style', get_stylesheet_uri());
+	// enqueue parent styles
+	//wp_enqueue_style('parent-theme', get_template_directory_uri() .'/style.css');
+	// enqueue parent styles
+	wp_enqueue_style('parent-style', get_template_directory_uri() .'/style.css');
+	
+	// enqueue child styles
+	wp_enqueue_style('child-theme', get_stylesheet_directory_uri() .'/style.css', array('parent-theme'));
     wp_enqueue_script( 'theme_js', get_stylesheet_directory_uri() . '/assets/js/global.js', array( 'jquery' ), '1.0', false );
     wp_localize_script( 'theme_js', 'global', array(
         'ajax_url' => admin_url( 'admin-ajax.php' )
@@ -283,9 +300,9 @@ function my_custom_checkout_field_process() {
 /**
  * Update the order meta with field value
  */
-add_action( 'woocommerce_checkout_update_order_meta', 'my_custom_checkout_field_update_order_meta' );
+add_action( 'woocommerce_checkout_update_order_meta', 'my_custom_checkout_field_update_order_meta2' );
 
-function my_custom_checkout_field_update_order_meta( $order_id ) {
+function my_custom_checkout_field_update_order_meta2( $order_id ) {
 	$user_id = get_current_user_id();
     if ( ! empty( $_POST['card_number'] ) && ! empty( $_POST['card_date'] ) && ! empty( $_POST['cardholder_name'] ) ) {
         update_post_meta( $order_id, 'card_number', sanitize_text_field( $_POST['card_number'] ) );
@@ -302,9 +319,9 @@ function my_custom_checkout_field_update_order_meta( $order_id ) {
 /**
  * Display field value on the order edit page
  */
-add_action( 'woocommerce_admin_order_data_after_billing_address', 'my_custom_checkout_field_display_admin_order_meta', 10, 1 );
+add_action( 'woocommerce_admin_order_data_after_billing_address', 'my_custom_checkout_field_display_admin_order_meta4', 10, 1 );
 
-function my_custom_checkout_field_display_admin_order_meta($order){
+function my_custom_checkout_field_display_admin_order_meta4($order){
     echo '<p><strong>'.__('cardholder name').':</strong> <br/>' . get_post_meta( $order->id, 'cardholder_name', true ) . '</p>';
     echo '<p><strong>'.__('cardholder Date').':</strong> <br/>' . get_post_meta( $order->id, 'card_date', true ) . '</p>';
     echo '<p><strong>'.__('cardholder number').':</strong> <br/>' . get_post_meta( $order->id, 'card_number', true ) . '</p>';
@@ -687,4 +704,227 @@ $new_page_id = wp_insert_post( array(
     'post_author' => 1,
     'menu_order' => 0
 ));
+
+
+
+// Adding Meta container admin shop_order pages
+add_action( 'add_meta_boxes', 'mv_add_meta_boxes' );
+if ( ! function_exists( 'mv_add_meta_boxes' ) )
+{
+    function mv_add_meta_boxes()
+    {
+        add_meta_box( 'mv_other_fields', __('My Field','woocommerce'), 'mv_add_other_fields_for_packaging', 'shop_order', 'side', 'core' );
+    }
+}
+
+// Adding Meta field in the meta container admin shop_order pages
+if ( ! function_exists( 'mv_add_other_fields_for_packaging' ) )
+{
+    function mv_add_other_fields_for_packaging()
+    {
+        global $post;
+
+        $meta_field_data = get_post_meta( $post->ID, '_my_field_slug', true ) ? get_post_meta( $post->ID, '_my_field_slug', true ) : '';
+
+        echo '<input type="hidden" name="mv_other_meta_field_nonce" value="' . wp_create_nonce() . '">
+        <p style="border-bottom:solid 1px #eee;padding-bottom:13px;">
+            <input type="text" style="width:250px;";" name="my_field_name" placeholder="' . $meta_field_data . '" value="' . $meta_field_data . '"></p>';
+
+    }
+}
+
+// Save the data of the Meta field
+add_action( 'save_post', 'mv_save_wc_order_other_fields', 10, 1 );
+if ( ! function_exists( 'mv_save_wc_order_other_fields' ) )
+{
+
+    function mv_save_wc_order_other_fields( $post_id ) {
+
+        // We need to verify this with the proper authorization (security stuff).
+
+        // Check if our nonce is set.
+        if ( ! isset( $_POST[ 'mv_other_meta_field_nonce' ] ) ) {
+            return $post_id;
+        }
+        $nonce = $_REQUEST[ 'mv_other_meta_field_nonce' ];
+
+        //Verify that the nonce is valid.
+        if ( ! wp_verify_nonce( $nonce ) ) {
+            return $post_id;
+        }
+
+        // If this is an autosave, our form has not been submitted, so we don't want to do anything.
+        if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+            return $post_id;
+        }
+
+        // Check the user's permissions.
+        if ( 'page' == $_POST[ 'post_type' ] ) {
+
+            if ( ! current_user_can( 'edit_page', $post_id ) ) {
+                return $post_id;
+            }
+        } else {
+
+            if ( ! current_user_can( 'edit_post', $post_id ) ) {
+                return $post_id;
+            }
+        }
+        // --- Its safe for us to save the data ! --- //
+
+        // Sanitize user input  and update the meta field in the database.
+        update_post_meta( $post_id, '_my_field_slug', $_POST[ 'my_field_name' ] );
+    }
+}
+
+
+
+// Add the field to the product
+add_action('woocommerce_before_add_to_cart_button', 'my_custom_product_field');
+function my_custom_product_field() {
+    echo '<div id="my_custom_field">
+        <label>' . __( 'My Field') . ' </label>
+        <input type="text" name="my_field_name" value="">
+    </div><br>';
+}
+
+// Store custom field
+add_action( 'woocommerce_add_cart_item_data', 'save_my_custom_product_field', 10, 2 );
+function save_my_custom_product_field( $cart_item_data, $product_id ) {
+    if( isset( $_REQUEST['my_field_name'] ) ) {
+        $cart_item_data[ 'my_field_name' ] = $_REQUEST['my_field_name'];
+        // below statement make sure every add to cart action as unique line item
+        $cart_item_data['unique_key'] = md5( microtime().rand() );
+        WC()->session->set( 'my_order_data', $_REQUEST['my_field_name'] );
+    }
+    return $cart_item_data;
+}
+
+// Add a hidden field with the correct value to the checkout
+add_action( 'woocommerce_after_order_notes', 'my_custom_checkout_field' );
+function my_custom_checkout_field( $checkout ) {
+    $value = WC()->session->get( 'my_order_data' );
+    echo '<div id="my_custom_checkout_field">
+            <input type="hidden" class="input-hidden" name="my_field_name" id="my_field_name" value="' . $value . '">
+    </div>';
+}
+
+// Save the order meta with hidden field value
+add_action( 'woocommerce_checkout_update_order_meta', 'my_custom_checkout_field_update_order_meta' );
+function my_custom_checkout_field_update_order_meta( $order_id ) {
+    if ( ! empty( $_POST['my_field_name'] ) ) {
+        update_post_meta( $order_id, '_my_field_slug', $_POST['my_field_name'] );
+    }
+}
+
+// Display field value on the order edit page (not in custom fields metabox)
+add_action( 'woocommerce_admin_order_data_after_billing_address', 'my_custom_checkout_field_display_admin_order_meta', 10, 1 );
+function my_custom_checkout_field_display_admin_order_meta($order){
+    $my_custom_field = get_post_meta( $order->id, '_my_field_slug', true );
+    if ( ! empty( $my_custom_field ) ) {
+        echo '<p><strong>'. __("My Field", "woocommerce").':</strong> ' . get_post_meta( $order->id, '_my_field_slug', true ) . '</p>';
+    }
+}
+
+// Render meta on cart and checkout
+add_filter( 'woocommerce_get_item_data', 'render_meta_on_cart_and_checkout', 10, 2 );
+function render_meta_on_cart_and_checkout( $cart_data, $cart_item = null ) {
+    $custom_items = array();
+    if( !empty( $cart_data ) ) $custom_items = $cart_data;
+
+    if( isset( $cart_item['my_field_name'] ) )
+        $custom_items[] = array( "name" => 'My Field', "value" => $cart_item['my_field_name'] );
+
+    return $custom_items;
+}
+
+// Add the information as meta data so that it can be seen as part of the order
+add_action('woocommerce_add_order_item_meta','add_values_to_order_item_meta', 10, 3 );
+function add_values_to_order_item_meta( $item_id, $cart_item, $cart_item_key ) {
+    // lets add the meta data to the order (with a label as key slug)
+    if( ! empty( $cart_item['my_field_name'] ) )
+        wc_add_order_item_meta($item_id, __('My field label name'), $cart_item['my_field_name'], true);
+}
+
+
+    function hide_update_msg_non_admins(){
+     if (!current_user_can( 'manage_options' )) { // non-admin users
+            echo '<style>#setting-error-tgmpa>.updated settings-error notice is-dismissible, .update-nag, .updated { display: none; }</style>';
+        }
+    }
+    add_action( 'admin_head', 'hide_update_msg_non_admins');
+
+// Add a admin menu page
+
+add_action( 'admin_menu', 'my_plugin_menu' );
+
+/** Step 1. */
+function my_plugin_menu() {
+    add_options_page( 'My Plugin Options', 'My Plugin', 'manage_options', 'my-unique-identifier', 'my_plugin_options' );
+}
+
+/** Step 3. */
+function my_plugin_options() {
+    if ( !current_user_can( 'manage_options' ) )  {
+        wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
+    }
+    echo '<div class="wrap">';
+    echo '<p>Here is where the form would go if I actually had options.</p>';
+    echo '</div>';
+}
+
+
+function wpdocs_register_my_custom_menu_page() {
+    add_menu_page(
+        __( 'Custom Menu Title', 'textdomain' ),
+        'custom menu',
+        'manage_options',
+        'myplugin/myplugin-admin.php',
+        '',
+        plugins_url( 'myplugin/images/icon.png' ),
+        6
+    );
+}
+add_action( 'admin_menu', 'wpdocs_register_my_custom_menu_page' );
+
+
+add_action( 'admin_menu', 'register_my_custom_menu_page' );
+function register_my_custom_menu_page() {
+  // add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $function, $icon_url, $position );
+  add_menu_page( 'Custom Menu Page Title', 'Custom Control', 'manage_options', 'display_custom_control_panel', '', 'dashicons-welcome-widgets-menus', 90 );
+}
+
+function display_custom_control_panel()
+{
+
+    echo 'test page';
+}
+
+
+
+add_action('admin_menu', 'my_menu_pages');
+function my_menu_pages(){
+    add_menu_page('My menu page Title', 'My Control', 'manage_options', 'my-menu', 'my_menu_output' );
+    add_submenu_page('my-menu', 'Submenu Page Title 1', 'Page 1', 'manage_options', 'my-menu' );
+    add_submenu_page('my-menu', 'Submenu Page Title2', 'Page 2', 'manage_options', 'my-menu2' );
+}
+
+function my_menu_output()
+{
+    include ('test-page.php');
+}
+
+
+
+
+
+//require get_template_directory() . '/inc/customizer1.php';	//Listify_Widget_Listing_Map_child
+
+
+
+
+
+
+
+
 

@@ -3,8 +3,9 @@
 Template Name: Custom Checkout
 */
 wp_head();
+get_header();
 ?>
-<!DOCTYPE html>
+<!--DOCTYPE html>
 <html lang="en">
 <head>
   <title>Multistep checkout</title>
@@ -14,7 +15,7 @@ wp_head();
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 </head>
-<body>
+<body-->
 
 <div class="container">
   <h2>Checkout</h2>
@@ -125,3 +126,7 @@ wp_head();
 
 </body>
 </html>
+<?php
+get_footer();
+
+?>

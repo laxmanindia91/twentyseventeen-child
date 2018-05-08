@@ -13,7 +13,7 @@ Tags: one-column, two-columns, right-sidebar, flexible-header, accessibility-rea
 This theme, like WordPress, is licensed under the GPL.
 Use it to make something cool, have fun, and share what you've learned with others.
 */
-
+/*@import url('../twentyseventeen/style.css');*/
 
 .wp-custom-header {display: none;}
 
@@ -27,4 +27,20 @@ outline: 1px solid red!important;
 
 form.search-form {
     display: none;
+}
+
+li.product {
+    float: left !important;
+}
+
+
+
+img.wp-post-image {
+    width: 250px !important;
+    height: 250px !important;
+}
+
+
+.woocommerce-cart-form {
+    float: left;
 }
