@@ -21,6 +21,7 @@ add_action( 'after_setup_theme', 'my_custom_woocommerce_theme_support' );*/
 
 function mytheme_add_woocommerce_support() {
 	add_theme_support( 'woocommerce' );
+	add_theme_support( 'html5', array( 'search-form' ) );
 }
 add_action( 'after_setup_theme', 'mytheme_add_woocommerce_support' );
 
@@ -888,20 +889,6 @@ function wpdocs_register_my_custom_menu_page() {
 add_action( 'admin_menu', 'wpdocs_register_my_custom_menu_page' );
 
 
-add_action( 'admin_menu', 'register_my_custom_menu_page' );
-function register_my_custom_menu_page() {
-  // add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $function, $icon_url, $position );
-  add_menu_page( 'Custom Menu Page Title', 'Custom Control', 'manage_options', 'display_custom_control_panel', '', 'dashicons-welcome-widgets-menus', 90 );
-}
-
-function display_custom_control_panel()
-{
-
-    echo 'test page';
-}
-
-
-
 add_action('admin_menu', 'my_menu_pages');
 function my_menu_pages(){
     add_menu_page('My menu page Title', 'My Control', 'manage_options', 'my-menu', 'my_menu_output' );
@@ -915,16 +902,61 @@ function my_menu_output()
 }
 
 
+//require get_template_directory() . '/inc/customizer1.php';
+
+
+/*add_filter('get_search_form', 'my_search_form');
+function my_search_form($html) {
+ //$html = 'Hello search page'; // here you can either customize the WordPress builtin search form or totally overwrite it
+ //return $html;
+ //print_r($_GET);
+}*/
+
+
+function wporg_simple_role()
+{
+    add_role(
+        'simple_role',
+        'Simple Role',
+        [
+            'read'         => true,
+            'edit_posts'   => true,
+            'upload_files' => true,
+        ]
+    );
+}
+ 
+// add the simple_role
+add_action('init', 'wporg_simple_role');
 
 
 
-//require get_template_directory() . '/inc/customizer1.php';	//Listify_Widget_Listing_Map_child
+add_filter( 'plugin_action_links', 'ttt_wpmdr_add_action_plugin', 10, 5 );
+function ttt_wpmdr_add_action_plugin( $actions, $plugin_file ) 
+{
+	static $plugin;
+
+	if (!isset($plugin))
+		$plugin = 'test-plugin/test-plugin.php';	//plugin_basename(__FILE__);
+	if ($plugin == $plugin_file) {
+
+			$settings = array('settings' => '<a href="options-general.php#redirecthere">' . __('Settings', 'General') . '</a>');
+			$site_link = array('support' => '<a href="http://domain.com" target="_blank">Support</a>');
+		
+    			$actions = array_merge($settings, $actions);
+				$actions = array_merge($site_link, $actions);
+			
+		}
+		
+		return $actions;
+}
 
 
 
+add_filter( 'plugin_action_links_test-cron/test-cron.php', 'my_plugin_action_links' );
 
-
-
-
-
-
+function my_plugin_action_links( $links ) {
+   $links[] = '<a href="'. esc_url( get_admin_url(null, 'options-general.php?page=gpaisr') ) .'">Settings</a>';
+   $links[] = '<a href="http://wp-buddy.com" target="_blank">Supports</a>';
+   return $links;
+}
