@@ -8,8 +8,12 @@ get_header();
 
 <div class="woocommerce-order">
 
-	<?php if ( !is_order_received_page()  ) : ?>
+<?php 
+if($order):
+echo do_shortcode('[woocommerce_checkout]');
+?>
 
+<?php else : ?>
 <div class="container">
   <h2>Checkout</h2>
   
@@ -116,11 +120,8 @@ get_header();
 
 
 </div>
-<?php endif; ?>
 
-<?php 
-if($order):
-echo do_shortcode('[woocommerce_checkout]');
+<?php
 endif;
 ?>
 
