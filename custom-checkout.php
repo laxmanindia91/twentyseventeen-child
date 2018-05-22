@@ -11,9 +11,12 @@ get_header();
 <?php 
 if($order):
 echo do_shortcode('[woocommerce_checkout]');
+echo 'aaa';
 ?>
 
-<?php else : ?>
+<?php else : 
+echo 'bbb';
+?>
 <div class="container">
   <h2>Checkout</h2>
   
@@ -126,6 +129,10 @@ endif;
 ?>
 
 </div>
+
+
+
+
 
 
 <?php
