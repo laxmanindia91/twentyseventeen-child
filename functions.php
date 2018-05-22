@@ -27,6 +27,7 @@ add_action( 'after_setup_theme', 'mytheme_add_woocommerce_support' );
 
 function listify_child_styles() {
     wp_enqueue_style( 'listify-child', get_stylesheet_uri() );
+	wp_enqueue_script( 'loadmore_js', get_stylesheet_directory_uri() . '/assets/js/loadmore.js', array('jquery'),'1.0', false );
 }
 add_action( 'wp_enqueue_scripts', 'listify_child_styles', 999 );
 
@@ -44,12 +45,19 @@ function theme_js() {
 	// enqueue child styles
 	wp_enqueue_style('child-theme', get_stylesheet_directory_uri() .'/style.css', array('parent-theme'));
     wp_enqueue_script( 'theme_js', get_stylesheet_directory_uri() . '/assets/js/global.js', array( 'jquery' ), '1.0', false );
+	wp_enqueue_script( 'loadmore_js', get_stylesheet_directory_uri() . '/assets/js/loadmore.js', array('jquery'),'1.0', false );
     wp_localize_script( 'theme_js', 'global', array(
+        'ajax_url' => admin_url( 'admin-ajax.php' )
+    ));
+	
+    wp_localize_script( 'loadmore_js', 'loadmore', array(
         'ajax_url' => admin_url( 'admin-ajax.php' )
     ));
 }
 
 add_action('wp_enqueue_scripts', 'theme_js');
+
+
 
 // Remove coupon section from checkout page
 remove_action( 'woocommerce_before_checkout_form', 'woocommerce_checkout_coupon_form', 10 ); 
@@ -507,7 +515,7 @@ function save_extra_user_profile_fields( $user_id ) {
 
 // Redirect custom thank you
  
-add_action( 'woocommerce_thankyou', 'bbloomer_redirectcustom');
+/*add_action( 'woocommerce_thankyou', 'bbloomer_redirectcustom');
  
 function bbloomer_redirectcustom( $order_id ){
     $order = new WC_Order( $order_id );
@@ -518,7 +526,7 @@ function bbloomer_redirectcustom( $order_id ){
         wp_redirect($url);
         exit;
     }
-}
+}*/
 
 
 
@@ -857,10 +865,10 @@ function add_values_to_order_item_meta( $item_id, $cart_item, $cart_item_key ) {
 
 // Add a admin menu page
 
-add_action( 'admin_menu', 'my_plugin_menu' );
+add_action( 'admin_menu', 'my_plugin_menu11' );
 
 /** Step 1. */
-function my_plugin_menu() {
+function my_plugin_menu11() {
     add_options_page( 'My Plugin Options', 'My Plugin', 'manage_options', 'my-unique-identifier', 'my_plugin_options' );
 }
 
@@ -892,13 +900,23 @@ add_action( 'admin_menu', 'wpdocs_register_my_custom_menu_page' );
 add_action('admin_menu', 'my_menu_pages');
 function my_menu_pages(){
     add_menu_page('My menu page Title', 'My Control', 'manage_options', 'my-menu', 'my_menu_output' );
-    add_submenu_page('my-menu', 'Submenu Page Title 1', 'Page 1', 'manage_options', 'my-menu' );
-    add_submenu_page('my-menu', 'Submenu Page Title2', 'Page 2', 'manage_options', 'my-menu2' );
+    add_submenu_page('my-menu', 'Submenu Page Title 1', 'Page 1', 'manage_options', 'my-menu1', 'my_menu1' );
+    add_submenu_page('my-menu', 'Submenu Page Title2', 'Page 2', 'manage_options', 'my-menu2', 'my_menu2');
 }
 
 function my_menu_output()
 {
     include ('test-page.php');
+}
+
+function my_menu1()
+{
+    include ('test-page1.php');
+}
+
+function my_menu2()
+{
+    include ('test-page2.php');
 }
 
 
@@ -960,3 +978,241 @@ function my_plugin_action_links( $links ) {
    $links[] = '<a href="http://wp-buddy.com" target="_blank">Supports</a>';
    return $links;
 }
+
+
+add_action( 'add_meta_boxes', 'add_events_metaboxes' );
+
+function add_events_metaboxes() {
+	add_meta_box(
+		'wpt_events_location',
+		'Event Location',
+		'wpt_events_location',
+		'page',
+		'side',
+		'default'
+	);
+}
+
+function wpt_events_location()
+{
+	echo '<label>' . __( 'My Field') . ' </label>'; ?>
+	<p>
+		<input type="text" name="location" value="<?php echo ''; ?>" /> 
+	</p>
+<?php
+}
+
+
+
+
+
+function testing (){
+	global $wpdb;
+	$random_number = wp_rand( 1, 100 );
+	$user_name = 'user' . $random_number;
+	$user_email = 'email@server' . $random_number . '.com';
+	$user_id = username_exists( $user_name );
+	
+if ( !$user_id and email_exists($user_email) == false ) {
+	$random_password = wp_generate_password( $length=12, $include_standard_special_chars=false );
+	$user_id = wp_create_user( $user_name, $random_password, $user_email );
+} else {
+	$random_password = __('User already exists.  Password inherited.');
+}
+$lastid = $wpdb->insert_id;
+$user_id = get_current_user_id();
+$cars = array
+  (
+  array("Field_1",22,18),
+  array("Field_2",15,13),
+  array("Field_3",5,2),
+  array("Field_4",17,15)
+  );
+$website = 'test' . $random_number . '.com';
+$user_data = wp_update_user( array( 'ID' => $lastid , 'user_url' => $website ) );
+//update_user_meta($lastid , 'user_data_test_' . $user_id, $cars);
+add_user_meta( $lastid, 'user_data_test_', $cars, true);
+}
+add_action('after_setup_theme', 'testing');
+
+function your_function( $user_login, $user ) {
+	$user_id = get_current_user_id();
+    update_user_meta($user_id , 'user_email', 'laxman091@gmail.com');
+}
+add_action('wp_login', 'your_function', 10, 2);
+
+
+//remove_action('load-update-core.php','wp_update_plugins');
+//add_filter('pre_site_transient_update_plugins','__return_null');
+
+/*function cvf_remove_wp_core_updates(){
+    global $wp_version;
+    return(object) array('last_checked' => time(),'version_checked' => $wp_version);
+}
+
+// Core Notifications
+add_filter('pre_site_transient_update_core','cvf_remove_wp_core_updates');
+// Plugin Notifications
+add_filter('pre_site_transient_update_plugins','cvf_remove_wp_core_updates');
+// Theme Notifications
+add_filter('pre_site_transient_update_themes','cvf_remove_wp_core_updates');*/
+
+function hide_update_notice_to_all_but_admin_users() 
+{
+    if (!current_user_can('update_core')) {
+        remove_action( 'admin_notices', 'update_nag', 3 );
+    }
+}
+add_action( 'admin_head', 'hide_update_notice_to_all_but_admin_users', 1 );
+
+function remove_core_updates1(){
+    global $wp_version;return(object) array('last_checked'=> time(),'version_checked'=> $wp_version,);
+}
+add_filter('pre_site_transient_update_core','remove_core_updates1');
+add_filter('pre_site_transient_update_plugins','remove_core_updates1');
+add_filter('pre_site_transient_update_themes','remove_core_updates1');
+
+
+add_action('after_setup_theme','remove_core_updates');
+function remove_core_updates()
+{
+if(! current_user_can('update_core')){return;}
+add_action('init', create_function('$a',"remove_action( 'init', 'wp_version_check' );"),2);
+add_filter('pre_option_update_core','__return_null');
+add_filter('pre_site_transient_update_core','__return_null');
+}
+
+remove_action('load-update-core.php','wp_update_plugins');
+add_filter('pre_site_transient_update_plugins','__return_null');
+
+
+function hide_update_notice1() {
+get_currentuserinfo();
+if (!current_user_can('manage_options')) {
+remove_action( 'admin_notices', 'update_nag', 3 );
+}
+}
+
+add_action( 'admin_notices', 'hide_update_notice1', 1 );
+
+
+// Hide the "Please update now" notification
+function hide_update_notice2() {
+   remove_action( 'admin_notices', 'update_nag', 3 );
+}
+add_action( 'admin_notices', 'hide_update_notice2', 1 );
+
+
+// Hide the "Please update now" notification
+function hide_update_notice3() {
+    get_currentuserinfo();
+    if (!current_user_can('manage_options')) {
+        remove_action( 'admin_notices', 'update_nag', 3 );
+    }
+}
+add_action( 'admin_notices', 'hide_update_notice3', 1 );
+
+
+if ($user_login != "username") {
+        remove_action( 'admin_notices', 'update_nag', 3 );
+    }
+
+
+
+add_action( 'wp_before_admin_bar_render', 'wpse161696_toolbar_menu' );
+add_action( 'admin_menu', 'wpse161696_updates' );
+
+function wpse161696_toolbar_menu() { // Remove update menu item from the toolbar
+    global $wp_admin_bar;
+    $wp_admin_bar -> remove_menu( 'updates' );
+}
+
+function wpse161696_updates() { // Remove all updating related functions
+    remove_submenu_page( 'index.php', 'update-core.php' ); // Remove Update submenu
+    // Redirect to Dashboard if update page is accessed
+    global $pagenow;
+    $page = array(
+        'update-core.php',
+        'update.php',
+        'update.php?action=upgrade-plugin'
+        );
+    if ( in_array( $pagenow, $page, true ) ) {
+        wp_redirect( admin_url( 'index.php' ), 301 );
+        // wp_die( 'Updates are disabled.' ); // An error message can be displayed instead
+        exit;
+    }
+}
+
+
+// Remove update notifications
+/*function remove_update_notifications( $value ) {
+
+    if ( isset( $value ) && is_object( $value ) ) {
+        unset( $value->response[ 'lifterlms/lifterlms.php' ] );
+    }
+
+    return $value;
+}
+add_filter( 'site_transient_update_plugins', 'remove_update_notifications' );*/
+
+
+//Remove a top level admin menu.
+function remove_menus(){  
+
+  /*remove_menu_page( 'index.php' );                  //Dashboard  
+  remove_menu_page( 'edit.php' );                   //Posts  
+  remove_menu_page( 'upload.php' );                 //Media  
+  remove_menu_page( 'edit.php?post_type=page' );    //Pages  
+  remove_menu_page( 'edit-comments.php' );          //Comments  
+  remove_menu_page( 'themes.php' );                 //Appearance  
+  remove_menu_page( 'plugins.php' );                //Plugins  
+  remove_menu_page( 'users.php' );                  //Users  
+  remove_menu_page( 'tools.php' );                  //Tools  
+  remove_menu_page( 'options-general.php' );        //Settings  
+  //Remove third party plugins admin menu items
+  remove_menu_page( 'edit.php?post_type=shop_order' );//for custom posts
+  remove_menu_page( 'my-menu' );//for custom plugin's page*/  
+
+}  
+add_action( 'admin_menu', 'remove_menus' ); 
+
+//How to hide sidebar widgets in all pages except Hompage
+add_action('wp_head', function(){       
+    if ( is_home() ) return; // on home it's okay
+
+    //unregister_sidebar('sidebar-1');
+});
+
+
+function misha_loadmore_ajax_handler(){
+ 
+	// prepare our arguments for the query
+	$args = json_decode( stripslashes( $_POST['query'] ), true );
+	$args['paged'] = $_POST['page'] + 1; // we need next page to be loaded
+	$args['post_status'] = 'publish';
+ 
+	// it is always better to use WP_Query but not here
+	query_posts( $args );
+ 
+	if( have_posts() ) :
+ 
+		// run the loop
+		while( have_posts() ): the_post();
+ 
+			// look into your theme code how the posts are inserted, but you can use your own HTML of course
+			// do you remember? - my example is adapted for Twenty Seventeen theme
+			get_template_part( 'template-parts/post/content', get_post_format() );
+			// for the test purposes comment the line above and uncomment the below one
+			// the_title();
+ 
+ 
+		endwhile;
+ 
+	endif;
+	die; // here we exit the script and even no wp_reset_query() required!
+}
+ 
+ 
+ 
+add_action('wp_ajax_loadmore', 'misha_loadmore_ajax_handler'); // wp_ajax_{action}
+add_action('wp_ajax_nopriv_loadmore', 'misha_loadmore_ajax_handler'); // wp_ajax_nopriv_{action}
