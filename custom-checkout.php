@@ -5,17 +5,10 @@ Template Name: Custom Checkout
 wp_head();
 get_header();
 ?>
-<!--DOCTYPE html>
-<html lang="en">
-<head>
-  <title>Multistep checkout</title>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-</head>
-<body-->
+
+<div class="woocommerce-order">
+
+	<?php if ( !is_order_received_page()  ) : ?>
 
 <div class="container">
   <h2>Checkout</h2>
@@ -123,9 +116,17 @@ get_header();
 
 
 </div>
+<?php endif; ?>
 
-</body>
-</html>
+<?php 
+if($order):
+echo do_shortcode('[woocommerce_checkout]');
+endif;
+?>
+
+</div>
+
+
 <?php
 get_footer();
 

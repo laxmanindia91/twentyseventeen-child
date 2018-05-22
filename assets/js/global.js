@@ -23,5 +23,10 @@ jQuery(document).ready(function($){
 		//$('.tab_coupon').click();
 		//$('#custom_billing_form').show('fast');
 	});
+	
+	
+
+
+
 
 });	// jquery end here
