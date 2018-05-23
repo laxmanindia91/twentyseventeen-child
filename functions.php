@@ -1216,3 +1216,25 @@ function misha_loadmore_ajax_handler(){
  
 add_action('wp_ajax_loadmore', 'misha_loadmore_ajax_handler'); // wp_ajax_{action}
 add_action('wp_ajax_nopriv_loadmore', 'misha_loadmore_ajax_handler'); // wp_ajax_nopriv_{action}
+
+
+if ( ! wp_next_scheduled( 'wpdocs_task_hook' ) ) {
+    wp_schedule_event( time(), 'hourly', 'wpdocs_task_hook' );
+}
+add_action( 'wpdocs_task_hook', 'wpdocs_task_function' ); // 'wpdocs_task_hook` is registered when the event is scheduled
+ 
+/**
+ * Send an alert by email.
+ */
+function wpdocs_task_function() {
+wp_mail( 'laxman@netscriptindia.com', 'Automatic email', 'Automatic scheduled email from WordPress.');	// working
+
+    // the message
+$msg = "First line of text\nSecond line of text";
+
+// use wordwrap() if lines are longer than 70 characters
+$msg = wordwrap($msg,70);
+
+// send email
+mail("laxman@netscriptindia.com","Automatic email",$msg);	// working
+}
