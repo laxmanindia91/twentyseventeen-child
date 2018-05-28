@@ -201,14 +201,24 @@ div#customer_details {
 .form-row.place-order {
     /* margin: 0 auto; */
     margin: 0 auto;
-    width: 65%;
+    /*width: 65%;*/
 }
 tr.cart_item {
-    background-color: #ff99cc;
+    /*background-color: #ff99cc;*/
 }
 tr.order-total {
-    background-color: #309e61;
+    /*background-color: #309e61;*/
 }
 .wnd-checkout-message {
     margin: 10px 45px;
+}
+
+.wrap {
+    clear: both;
+}
+div#primary {
+    /*text-align: center;*/
+}
+.woocommerce-info {
+    clear: both;
 }

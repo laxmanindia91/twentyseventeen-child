@@ -1,5 +1,4 @@
 jQuery(document).ready(function($){
-	$('input.field').attr('autocomplete', 'off');
 	
     $(".app_coupon_code").click(function(){
     	var coupon = $('.apply_coupon').val();
