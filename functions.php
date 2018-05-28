@@ -26,7 +26,16 @@ function mytheme_add_woocommerce_support() {
 add_action( 'after_setup_theme', 'mytheme_add_woocommerce_support' );
 
 function listify_child_styles() {
-    wp_enqueue_style( 'listify-child', get_stylesheet_uri() );
+    // enqueue style
+	    $parent_style = 'parent-style'; // This is 'twentyfifteen-style' for the Twenty Fifteen theme.
+ 
+    wp_enqueue_style( $parent_style, get_template_directory_uri() . '/style.css' );
+    wp_enqueue_style( 'child-style',
+        get_stylesheet_directory_uri() . '/style.css',
+        array( $parent_style ),
+        wp_get_theme()->get('Version')
+    );
+	
 	wp_enqueue_script( 'loadmore_js', get_stylesheet_directory_uri() . '/assets/js/loadmore.js', array('jquery'),'1.0', false );
 }
 add_action( 'wp_enqueue_scripts', 'listify_child_styles', 999 );
@@ -56,6 +65,12 @@ function theme_js() {
 }
 
 add_action('wp_enqueue_scripts', 'theme_js');
+
+
+function wpb_custom_new_menu() {
+  register_nav_menu('primary-menu',__( 'Primary Menu' ));
+}
+add_action( 'init', 'wpb_custom_new_menu' );
 
 
 
@@ -1238,3 +1253,4 @@ $msg = wordwrap($msg,70);
 // send email
 mail("laxman@netscriptindia.com","Automatic email",$msg);	// working
 }
+
