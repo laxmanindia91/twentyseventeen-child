@@ -11,11 +11,9 @@ get_header();
 <?php 
 if($order):
 echo do_shortcode('[woocommerce_checkout]');
-echo 'aaa';
 ?>
 
 <?php else : 
-echo 'bbb';
 ?>
 <div class="container">
   <h2>Checkout</h2>
@@ -64,7 +62,7 @@ echo 'bbb';
     </div>
     <div id="billingshipping" class="tab-pane fade">
       <h3>Billing & Shipping</h3>
-      <?php echo get_stylesheet_directory_uri(); ?>
+      <?php //echo get_stylesheet_directory_uri(); ?>
       <?php //get_template_part( 'woocommerce/checkout/form', 'checkout' ); ?>
       <?php //echo do_shortcode('[woocommerce_one_page_checkout]'); ?>
       <?php //do_action('woocommerce_checkout_process'); ?>
