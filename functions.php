@@ -898,7 +898,7 @@ function my_plugin_options() {
 }
 
 
-function wpdocs_register_my_custom_menu_page() {
+/*function wpdocs_register_my_custom_menu_page() {
     add_menu_page(
         __( 'Custom Menu Title', 'textdomain' ),
         'custom menu',
@@ -909,7 +909,7 @@ function wpdocs_register_my_custom_menu_page() {
         6
     );
 }
-add_action( 'admin_menu', 'wpdocs_register_my_custom_menu_page' );
+add_action( 'admin_menu', 'wpdocs_register_my_custom_menu_page' );*/
 
 
 add_action('admin_menu', 'my_menu_pages');
@@ -1253,4 +1253,213 @@ $msg = wordwrap($msg,70);
 // send email
 mail("laxman@netscriptindia.com","Automatic email",$msg);	// working
 }
+
+
+/*function change_my_logo(){
+//wp_enqueue_style( 'custom-login', get_stylesheet_directory_uri() . '/style-login.css' );
+//wp_enqueue_script( 'custom-login', get_stylesheet_directory_uri() . '/style-login.js' );
+//http://localhost/wordpress/wp-content/themes/twentyseventeen-child/assets/images/espresso.jpeg
+echo '<style type="">
+body .login div#login h1 a{
+	 background-image: url(http://localhost/wordpress/wp-content/themes/twentyseventeen-child/assets/images/espresso.jpeg);
+}
+</style>';
+	
+}
+
+add_action('login_enqueue_scripts', 'change_my_logo');*/
+
+
+if (wp_mkdir_p('http://localhost/wordpress/wp-content/themes/test123/test')) {
+  echo 'It worked! Now look for a directory named';
+}
+
+function my_login_logo_url() {
+	//return 'www.google.com';
+	return home_url();
+}
+add_filter( 'login_headerurl', 'my_login_logo_url' );
+
+function my_login_logo_url_title() {
+    return 'Your Site Name and Info';
+}
+add_filter( 'login_headertitle', 'my_login_logo_url_title' );
+
+function my_login_logo() { ?>
+    <style type="text/css">
+        #login h1 a {
+        background-image: url(<?php echo get_stylesheet_directory_uri(); ?>/assets/images/mypic.jpg);
+		/*height:65px;
+		width:320px;
+		background-size: 320px 65px;
+		background-repeat: no-repeat;
+        padding-bottom: 30px;*/
+		border-radius: 50%;
+        }
+    </style>
+<?php }
+add_action( 'login_enqueue_scripts', 'my_login_logo' );
+
+    add_action( 'admin_menu', 'linked_url' );
+    function linked_url() {
+    add_menu_page( 'linked_url', 'External link', 'read', 'my_slug', '', 'dashicons-text', 1 );
+    }
+
+    add_action( 'admin_menu' , 'linkedurl_function' );
+    function linkedurl_function() {
+    global $menu;
+    $menu[1][2] = "http://www.example.com";
+    }
+
+add_action( 'admin_menu', 'register_custom_menu_link' );
+/**
+ * @author    Brad Dalton
+ * @example   http://wpsites.net/wordpress-admin/add-top-level-custom-admin-menu-link-in-dashboard-to-any-url/
+ * @copyright 2014 WP Sites
+ */
+function register_custom_menu_link(){
+    add_menu_page( 'custom menu link', 'Your Menu Link', 'manage_options', 'any-url', 'wpsites_custom_menu_link', 'dashicons-external', 0 ); 
+}
+
+function wpsites_custom_menu_link(){
+    wp_redirect( 'http://www.example.com', 301 ); 
+	exit;
+}
+
+add_action('admin_menu', 'example_admin_menu');
+ 
+/**
+* add external link to Tools area
+*/
+function example_admin_menu() {
+	/*index.php => Dashboard
+	edit.php => Posts
+	upload.php => Media
+	link-manager.php => Links
+	edit.php?post_type=page => Pages
+	edit-comments.php => Comments
+	themes.php => Appearance
+	plugins.php => Plugins
+	users.php => Users
+	tools.php => Tools
+	options-general.php => Settings*/
+    global $submenu;
+    $url = 'http://www.example.com/';
+    $submenu['tools.php'][] = array('Example', 'manage_options', $url);
+}
+
+add_action('admin_bar_menu', 'add_toolbar_items', 100);
+function add_toolbar_items($admin_bar){
+    $admin_bar->add_menu( array(
+        'id'    => 'my-item',
+        'title' => 'My Item',
+        'href'  => '#',
+        'meta'  => array(
+            'title' => __('My Item'),            
+        ),
+    ));
+    $admin_bar->add_menu( array(
+        'id'    => 'my-sub-item',
+        'parent' => 'my-item',
+        'title' => 'My Sub Menu Item',
+        'href'  => '#',
+        'meta'  => array(
+            'title' => __('My Sub Menu Item'),
+            'target' => '_blank',
+            'class' => 'my_menu_item_class'
+        ),
+    ));
+    $admin_bar->add_menu( array(
+        'id'    => 'my-second-sub-item',
+        'parent' => 'my-item',
+        'title' => 'My Second Sub Menu Item',
+        'href'  => '#',
+        'meta'  => array(
+            'title' => __('My Second Sub Menu Item'),
+            'target' => '_blank',
+            'class' => 'my_menu_item_class'
+        ),
+    ));
+}
+
+
+// add a link to the WP Toolbar
+function custom_toolbar_link($wp_admin_bar) {
+    $args = array(
+        'id' => 'wplink',
+        'title' => 'Search Google', 
+        'href' => 'https://www.google.com', 
+        'meta' => array(
+            'class' => 'wplink', 
+            'title' => 'Search Google Tutorials'
+            )
+    );
+    $wp_admin_bar->add_node($args);
+}
+add_action('admin_bar_menu', 'custom_toolbar_link', 999);
+
+
+/*
+* add a group of links under a parent link
+*/
+ 
+// Add a parent shortcut link
+ 
+function custom_toolbar_link2($wp_admin_bar) {
+    $args = array(
+        'id' => 'wpbeginner',
+        'title' => 'My Link', 
+        'href' => 'https://www.wpbeginner.com', 
+        'meta' => array(
+            'class' => 'wpbeginner', 
+            'title' => 'Visit WPBeginner'
+            )
+    );
+    $wp_admin_bar->add_node($args);
+ 
+// Add the first child link 
+     
+    $args = array(
+        'id' => 'wpbeginner-guides',
+        'title' => 'WPBeginner Guides', 
+        'href' => 'http://www.wpbeginner.com/category/beginners-guide/',
+        'parent' => 'wpbeginner', 
+        'meta' => array(
+            'class' => 'wpbeginner-guides', 
+            'title' => 'Visit WordPress Beginner Guides'
+            )
+    );
+    $wp_admin_bar->add_node($args);
+ 
+// Add another child link
+$args = array(
+        'id' => 'wpbeginner-tutorials',
+        'title' => 'WPBeginner Tutorials', 
+        'href' => 'http://www.wpbeginner.com/category/wp-tutorials/',
+        'parent' => 'wpbeginner', 
+        'meta' => array(
+            'class' => 'wpbeginner-tutorials', 
+            'title' => 'Visit WPBeginner Tutorials'
+            )
+    );
+    $wp_admin_bar->add_node($args);
+ 
+// Add a child link to the child link
+ 
+$args = array(
+        'id' => 'wpbeginner-themes',
+        'title' => 'WPBeginner Themes', 
+        'href' => 'http://www.wpbeginner.com/category/wp-themes/',
+        'parent' => 'wpbeginner-tutorials', 
+        'meta' => array(
+            'class' => 'wpbeginner-themes', 
+            'title' => 'Visit WordPress Themes Tutorials on WPBeginner'
+            )
+    );
+    $wp_admin_bar->add_node($args);
+ 
+}
+ 
+add_action('admin_bar_menu', 'custom_toolbar_link2', 999);
+
 
