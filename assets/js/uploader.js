@@ -45,5 +45,22 @@ jQuery( document ).ready( function() {
         wp.media.editor.open( button );
         return false;
     } );
+	
+	jQuery( '#product_image_meta_button' ).click( function() {
+	
+		var button = $(this);
+                var image_src = $('#get_img');
+				var image_id = $('#image_id');
+                wp.media.editor.send.attachment = function(props, attachment) {
+					console.log(attachment.id);
+                    image_src.attr('src', attachment.url);
+					image_id.val(attachment.id);
+                };
+                wp.media.editor.open(button);
+                return false;
+            
+	
+	
+	});
  
 } );

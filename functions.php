@@ -22,8 +22,20 @@ add_action( 'after_setup_theme', 'my_custom_woocommerce_theme_support' );*/
 function mytheme_add_woocommerce_support() {
 	add_theme_support( 'woocommerce' );
 	add_theme_support( 'html5', array( 'search-form' ) );
+	
+	//Enabling the gallery in themes
+	add_theme_support( 'wc-product-gallery-zoom' );
+	add_theme_support( 'wc-product-gallery-lightbox' );
+	add_theme_support( 'wc-product-gallery-slider' );
+	
+	//Disabling gallery
+	//remove_theme_support( 'wc-product-gallery-zoom' );
+	//remove_theme_support( 'wc-product-gallery-lightbox' );
+	//remove_theme_support( 'wc-product-gallery-slider' );
 }
 add_action( 'after_setup_theme', 'mytheme_add_woocommerce_support' );
+
+
 
 function listify_child_styles() {
     // enqueue style
@@ -1265,19 +1277,13 @@ mail("laxman@netscriptindia.com","Automatic email",$msg);	// working
 }
 
 
-/*function change_my_logo(){
-//wp_enqueue_style( 'custom-login', get_stylesheet_directory_uri() . '/style-login.css' );
+function change_my_logo(){
+wp_enqueue_style( 'custom-login', get_stylesheet_directory_uri() . '/style-login.css' );
 //wp_enqueue_script( 'custom-login', get_stylesheet_directory_uri() . '/style-login.js' );
 //http://localhost/wordpress/wp-content/themes/twentyseventeen-child/assets/images/espresso.jpeg
-echo '<style type="">
-body .login div#login h1 a{
-	 background-image: url(http://localhost/wordpress/wp-content/themes/twentyseventeen-child/assets/images/espresso.jpeg);
-}
-</style>';
-	
 }
 
-add_action('login_enqueue_scripts', 'change_my_logo');*/
+add_action('login_enqueue_scripts', 'change_my_logo');
 
 
 if (wp_mkdir_p('http://localhost/wordpress/wp-content/themes/test123/test')) {
@@ -1650,3 +1656,86 @@ function wti_loginout_menu_link( $items, $args ) {
  }
  return $items;
 }
+
+
+/**
+ * Add custom addon field
+ */
+function echo5_add_checkbox_image_field($post, $product_addons, $loop, $option) {
+    wp_enqueue_media();
+    ob_start();
+    ?>
+    <td class="checkbox_column">
+        <input type="hidden" name="product_addon_option_image[<?php echo $loop; ?>][]" value="<?php echo esc_attr( $option['image']  ); ?>" class="image_attachment_id" />
+        <?php if (is_numeric($option['image'])) { 
+            $image_src = wp_get_attachment_image_src($option['image']);
+            ?>
+            <img class="image-preview" src="<?php echo $image_src[0]; ?>" width="60" height="60" style="max-height: 60px; width: 60px;">
+        <?php } ?>
+        <input type="button" class="button upload_image_button" value="<?php _e( 'Upload image' ); ?>" />
+    </td>
+    <?php
+    $output = ob_get_clean();
+    echo $output;
+
+}
+add_action('woocommerce_product_addons_panel_option_row', 'echo5_add_checkbox_image_field', 10, 4);
+
+function custom_product_tabs( $tabs) {
+	$tabs['giftcard'] = array(
+		'label'		=> __( 'Gift Card', 'woocommerce' ),
+		'target'	=> 'giftcard_options',
+		'class'		=> array( 'show_if_simple', 'show_if_variable'  ),
+	);
+	return $tabs;
+}
+add_filter( 'woocommerce_product_data_tabs', 'custom_product_tabs' );
+
+
+add_action("add_meta_boxes", "add_custom_meta_box2");
+function add_custom_meta_box2()
+{
+    add_meta_box("demo-meta-box", "More Images", "custom_meta_box_markup2", "product", "side", "low", null);
+}
+
+
+
+function custom_meta_box_markup2($post_id)
+{
+	echo $images = get_post_meta( get_the_ID(), 'images' );
+ ?>
+	<img src="" id="get_img" name="get_img">
+	<input type="hidden" name="image_id" id="image_id" value=""/>
+    <input type="button" name="product_image_meta_button" id="product_image_meta_button" value="Add" />
+    <?php   
+}
+
+function kvkoolitus_dates_save_meta( $post_id ) {
+$image_ids = array();
+
+print_r($_POST);
+//die();
+  if( !isset( $_POST['image_id'] )) 
+    return;
+
+if ( isset($_POST['image_id']) ) {        
+    //update_post_meta($post_id, 'kvkoolitus-price', sanitize_text_field($_POST['kvkoolitus_price']));
+	array_push($image_ids, $_POST['image_id']);	
+	add_post_meta( $post_id, 'images', $image_ids );
+  }
+  
+}
+add_action('save_post', 'kvkoolitus_dates_save_meta');
+
+
+
+
+
+
+
+
+
+
+
+
+
