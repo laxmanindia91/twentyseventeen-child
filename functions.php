@@ -40,6 +40,14 @@ function listify_child_styles() {
 }
 add_action( 'wp_enqueue_scripts', 'listify_child_styles', 999 );
 
+function shr_add_admin_scripts(){
+ 
+    wp_enqueue_media();
+    wp_enqueue_script('shr-uploader', get_stylesheet_directory_uri().'/assets/js/uploader.js', array('jquery'), '1.0', true );
+}
+add_action('admin_enqueue_scripts', 'shr_add_admin_scripts');
+
+
 function theme_js() {
 	//wp_enqueue_style('parent-theme-style'); // parent theme code
 	//wp_enqueue_style( 'parent-style', get_template_directory_uri() . '/style.css' );
@@ -65,10 +73,12 @@ function theme_js() {
 }
 
 add_action('wp_enqueue_scripts', 'theme_js');
+//add_action( 'admin_enqueue_scripts', 'theme_js' );	// Add admin area script
 
 
 function wpb_custom_new_menu() {
   register_nav_menu('primary-menu',__( 'Primary Menu' ));
+  register_nav_menu('logout-menu',__( 'Logout Menu' ));
 }
 add_action( 'init', 'wpb_custom_new_menu' );
 
@@ -1462,4 +1472,181 @@ $args = array(
  
 add_action('admin_bar_menu', 'custom_toolbar_link2', 999);
 
+function elh_insert_into_db() {
+ 
+    global $wpdb;
+    // creates my_table in database if not exists
+    $table = $wpdb->prefix . "my_table"; 
+    $charset_collate = $wpdb->get_charset_collate();
+    $sql = "CREATE TABLE IF NOT EXISTS $table (
+        `id` mediumint(9) NOT NULL AUTO_INCREMENT,
+        `name` text NOT NULL,
+    UNIQUE (`id`)
+    ) $charset_collate;";
+    require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+    dbDelta( $sql );
+    // starts output buffering
+    ob_start();
+    ?>
+    <form action="#v_form" method="post" id="v_form">
+        <label for="visitor_name"><h3>Hello there! What is your name?</h3></label>
+        <input type="text" name="visitor_name" id="visitor_name" />
+        <input type="submit" name="submit_form" value="submit" />
+    </form>
+    <?php
+    $html = ob_get_clean();
+    // does the inserting, in case the form is filled and submitted
+    if ( isset( $_POST["submit_form"] ) && $_POST["visitor_name"] != "" ) {
+        $table = $wpdb->prefix."my_table";
+        $name = strip_tags($_POST["visitor_name"], "");
+        $wpdb->insert( 
+            $table, 
+            array( 
+                'name' => $name
+            )
+        );
+        $html = "<p>Your name <strong>$name</strong> was successfully recorded. Thanks!!</p>";
+    }
+    // if the form is submitted but the name is empty
+    if ( isset( $_POST["submit_form"] ) && $_POST["visitor_name"] == "" )
+        $html .= "<p>You need to fill the required fields.</p>";
+    // outputs everything
+    return $html;
+     
+}
+// adds a shortcode you can use: [insert-into-db]
+add_shortcode('elh-db-insert', 'elh_insert_into_db');
 
+function shr_extra_profile_fields( $user ) {
+//print_r($_POST);
+//die(); 
+    $profile_pic = ($user!=='add-new-user') ? get_user_meta($user->ID, 'shr_pic', true): false;
+ 
+    if( !empty($profile_pic) ){
+        $image = wp_get_attachment_image_src( $profile_pic, 'thumbnail' );
+		
+
+
+ 
+    }
+	
+	$months 	= array( 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December' );
+    $default	= array( 'day' => 1, 'month' => 'Jnuary', 'year' => 1950, );
+    $birth_date = wp_parse_args( get_the_author_meta( 'birth_date', $user->ID ), $default );
+	
+	?>
+ 
+    <table class="form-table fh-profile-upload-options">
+        <tr>
+            <th>
+                <label for="image"><?php _e('Main Profile Image', 'shr') ?></label>
+            </th>
+ 
+            <td>
+                
+                <input type="hidden" class="button" name="shr_image_id" id="shr_image_id" value="<?php echo !empty($profile_pic) ? $profile_pic : ''; ?>" />
+                <img id="shr-img" src="<?php echo !empty($profile_pic) ? $image[0] : ''; ?>" style="<?php echo  empty($profile_pic) ? 'display:none;' :'' ?> max-width: 100px; max-height: 100px;" />
+				<input type="button" data-id="shr_image_id" data-src="shr-img" class="button shr-image" name="shr_image" id="shr-image" value="Upload" style="    margin-top: 30px;"/>
+            </td>
+        </tr>
+		   	 <tr>
+   		 <th><label for="birth-date-day">Birth date</label></th>
+   		 <td>
+   			 <select id="birth-date-day" name="birth_date[day]"><?php
+   				 for ( $i = 1; $i <= 31; $i++ ) {
+   					 printf( '<option value="%1$s" %2$s>%1$s</option>', $i, selected( $birth_date['day'], $i, false ) );
+   				 }
+   			 ?></select>
+   			 <select id="birth-date-month" name="birth_date[month]"><?php
+   				 foreach ( $months as $month ) {
+   					 printf( '<option value="%1$s" %2$s>%1$s</option>', $month, selected( $birth_date['month'], $month, false ) );
+   				 }
+   			 ?></select>
+   			 <select id="birth-date-year" name="birth_date[year]"><?php
+   				 for ( $i = 1950; $i <= 2015; $i++ ) {
+   					 printf( '<option value="%1$s" %2$s>%1$s</option>', $i, selected( $birth_date['year'], $i, false ) );
+   				 }
+   			 ?></select>
+   		 </td>
+   	 </tr>
+		<tr>
+			<th><label for="twitter">Twitter</label></th>
+
+			<td>
+				<input type="text" name="twitter" id="twitter" value="<?php echo esc_attr( get_the_author_meta( 'twitter', $user->ID ) ); ?>" class="regular-text" /><br />
+				<span class="description">Please enter your Twitter username.</span>
+			</td>
+		</tr>
+				<tr>
+			<th><label for="instagram">Instagram</label></th>
+
+			<td>
+				<input type="text" name="instagram" id="instagram" value="<?php echo esc_attr( get_the_author_meta( 'instagram', $user->ID ) ); ?>" class="regular-text" /><br />
+				<span class="description">Please enter your Instagram username.</span>
+			</td>
+		</tr>
+				<tr>
+			<th><label for="facebook">Facebook</label></th>
+
+			<td>
+				<input type="text" name="facebook" id="facebook" value="<?php echo esc_attr( get_the_author_meta( 'facebook', $user->ID ) ); ?>" class="regular-text" /><br />
+				<span class="description">Please enter your Facebook username.</span>
+			</td>
+		</tr>
+    </table><?php
+ 
+}
+add_action( 'show_user_profile', 'shr_extra_profile_fields' );
+add_action( 'edit_user_profile', 'shr_extra_profile_fields' );
+add_action( 'user_new_form', 'shr_extra_profile_fields' );
+
+function save_extra_profile_fields( $user_id ) {
+
+if ( !current_user_can( 'edit_user', $user_id ) )
+        return false;
+
+    /* Edit the following lines according to your set fields */
+    update_usermeta( $user_id, 'twitter', $_POST['twitter'] );
+    update_usermeta( $user_id, 'instagram', $_POST['instagram'] );
+    update_usermeta( $user_id, 'facebook', $_POST['facebook'] );
+}
+
+add_action( 'personal_options_update', 'save_extra_profile_fields' );
+add_action( 'edit_user_profile_update', 'save_extra_profile_fields' );
+
+
+function shr_profile_update($user_id){
+ 
+    if( current_user_can('edit_users') ){
+        $profile_pic = empty($_POST['shr_image_id']) ? '' : $_POST['shr_image_id'];
+        update_user_meta($user_id, 'shr_pic', $profile_pic);
+    }
+ 
+}
+add_action('profile_update', 'shr_profile_update');
+add_action('user_register', 'shr_profile_update');
+
+
+add_filter( 'wp_login_errors', 'my_logout_message' );
+
+function my_logout_message( $errors ){
+
+    if ( isset( $errors->errors['loggedout'] ) ){
+        $errors->errors['loggedout'][0] = 'This is the <strong style="color:red;">logged out</strong> message.';
+    }
+
+    return $errors;
+}
+
+add_filter( 'wp_nav_menu_items', 'wti_loginout_menu_link', 10, 2 );
+
+function wti_loginout_menu_link( $items, $args ) {
+ if ($args->theme_location == 'primary-menu') {
+    if (is_user_logged_in()) {
+       $items .= '<li class="right"><a href="'. wp_logout_url(home_url()) .'">'. __("Logout") .'</a></li>';
+    } else {
+       $items .= '<li class="right"><a href="'. wp_login_url(get_permalink()) .'">'. __("Login") .'</a></li>';
+    }
+ }
+ return $items;
+}
