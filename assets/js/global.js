@@ -1,5 +1,7 @@
 jQuery(document).ready(function($){
 	
+	jQuery('#user_login').attr("disabled", false);
+	
     $(".app_coupon_code").click(function(){
     	var coupon = $('.apply_coupon').val();
     	//$('.apply_coupon').val('');
@@ -20,7 +22,7 @@ jQuery(document).ready(function($){
 	$('.next_coupon').click(function(){
 		//alert('coupon');
 		//$(".tab_coupon").click();
-		document.getElementById('tab_coupon').click();
+		//document.getElementById('tab_coupon').click();
 		//$('.tab_coupon').click();
 		//$('#custom_billing_form').show('fast');
 	});
