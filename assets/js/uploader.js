@@ -52,9 +52,11 @@ jQuery( document ).ready( function() {
                 var image_src = $('#get_img');
 				var image_id = $('#image_id');
                 wp.media.editor.send.attachment = function(props, attachment) {
-					console.log(attachment.id);
-                    image_src.attr('src', attachment.url);
-					image_id.val(attachment.id);
+                    //image_src.attr('src', attachment.url);
+					//image_id.val(attachment.id);
+					console.log(attachment.id + ' ' + attachment.url);
+					jQuery(".my_product_images").append('<input type="hidden" name="image_id[]" id="image_id" value="'+attachment.id+'"/--><li class="my_image_id" name="image_id" data-attachment_id="'+attachment.id+'"><img width="150" height="150" src="'+attachment.url+'" class="attachment-thumbnail size-thumbnail" alt="" srcset="'+attachment.url+'" /></li>');
+							
                 };
                 wp.media.editor.open(button);
                 return false;
