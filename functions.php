@@ -1278,12 +1278,17 @@ mail("laxman@netscriptindia.com","Automatic email",$msg);	// working
 
 
 function change_my_logo(){
-wp_enqueue_style( 'custom-login', get_stylesheet_directory_uri() . '/style-login.css' );
+wp_enqueue_style( 'custom-login', get_stylesheet_directory_uri() . '/assets/css/style-login.css' );
 //wp_enqueue_script( 'custom-login', get_stylesheet_directory_uri() . '/style-login.js' );
 //http://localhost/wordpress/wp-content/themes/twentyseventeen-child/assets/images/espresso.jpeg
 }
-
 add_action('login_enqueue_scripts', 'change_my_logo');
+
+function load_custom_wp_admin_style() {
+        wp_register_style( 'custom_wp_admin_css', get_stylesheet_directory_uri() . '/assets/css/style-admin.css', false, '1.0.0' );
+        wp_enqueue_style( 'custom_wp_admin_css' );
+}
+add_action( 'admin_enqueue_scripts', 'load_custom_wp_admin_style' );
 
 
 if (wp_mkdir_p('http://localhost/wordpress/wp-content/themes/test123/test')) {
@@ -1694,48 +1699,209 @@ add_filter( 'woocommerce_product_data_tabs', 'custom_product_tabs' );
 
 add_action("add_meta_boxes", "add_custom_meta_box2");
 function add_custom_meta_box2()
-{
-    add_meta_box("demo-meta-box", "More Images", "custom_meta_box_markup2", "product", "side", "low", null);
+{	
+	$types = array( 'product' );	//post, page, product
+
+	foreach( $types as $type ) {
+		add_meta_box("demo-meta-box", "More Images", "custom_meta_box_markup2", $type, "side", "low", null);
+	}
 }
 
 
 
 function custom_meta_box_markup2($post_id)
 {
-	echo $images = get_post_meta( get_the_ID(), 'images' );
- ?>
-	<img src="" id="get_img" name="get_img">
-	<input type="hidden" name="image_id" id="image_id" value=""/>
-    <input type="button" name="product_image_meta_button" id="product_image_meta_button" value="Add" />
+	//delete_post_meta( get_the_ID(), 'images' );
+	?>
+	<div class="my_images_container">
+	<ul class="my_product_images">
+	<?php
+	$images = get_post_meta( get_the_ID(), 'images' );
+	foreach($images as $key=>$imgs)
+	{
+		foreach($imgs as $image_id)
+		{
+			$img_url = wp_get_attachment_url( $image_id );
+			echo '<li class="my_image_id" name="image_id" data-attachment_id="'.$image_id.'">
+				<img width="150" height="150" src="'.$img_url.'" class="attachment-thumbnail size-thumbnail" alt="" srcset="'.$img_url.'" />
+				</li>';
+		}
+	}
+?>
+</ul>
+	</div>
+    <input type="button" name="product_image_meta_button" id="product_image_meta_button" value="Add Images" />
     <?php   
 }
 
-function kvkoolitus_dates_save_meta( $post_id ) {
+function product_images_save_meta( $post_id ) {
 $image_ids = array();
+$images_array = $_POST['image_id'];
 
-print_r($_POST);
-//die();
-  if( !isset( $_POST['image_id'] )) 
-    return;
-
-if ( isset($_POST['image_id']) ) {        
-    //update_post_meta($post_id, 'kvkoolitus-price', sanitize_text_field($_POST['kvkoolitus_price']));
-	array_push($image_ids, $_POST['image_id']);	
-	add_post_meta( $post_id, 'images', $image_ids );
+  if( !isset( $_POST['image_id'] ))
+  {
+	return;  
+  }
+  else{
+	foreach($images_array as $img){
+		array_push($image_ids,$img);
+		add_post_meta( $post_id, 'images', $image_ids );	
+	}
+	
   }
   
 }
-add_action('save_post', 'kvkoolitus_dates_save_meta');
+add_action('save_post', 'product_images_save_meta');
 
 
 
 
+/*WP Editor work TinyMCe*/
+/*$content = 'Hello';
+$editor_id = 'mycustomeditor';
+
+$settings = array( 
+	'quicktags' => array( 'buttons' => 'strong,em,del,ul,ol,li,close' ), // note that spaces in this list seem to cause an issue
+);
+
+wp_editor( $content, $editor_id, $settings );*/
+
+	
+/*function myprefix_mce_buttons_1( $buttons ) {
+	array_unshift( $buttons, 'styleselect' );
+	return $buttons;
+}
+
+add_filter( 'mce_buttons_1', 'myprefix_mce_buttons_1' );
+	
+function add_style_select_buttons( $buttons ) {
+    array_unshift( $buttons, 'styleselect' );
+    return $buttons;
+}
+// Register our callback to the appropriate filter
+add_filter( 'mce_buttons_2', 'add_style_select_buttons' );*/	
 
 
 
+/*add_filter( 'default_content', 'my_editor_content' );
+
+function my_editor_content( $content ) {
+
+	$content = "This is some custom content I'm adding to the post editor because I hate re-typing it.";
+
+	return $content;
+}*/
 
 
+/*function wpdocs_theme_add_editor_styles() {
+    add_editor_style( 'custom-editor-style.css' );
+}
+add_action( 'admin_init', 'wpdocs_theme_add_editor_styles' );*/
+
+/*function myprefix_add_format_styles( $init_array ) {
+	$style_formats = array(
+		// Each array child is a format with it's own settings - add as many as you want
+		array(
+			'title'    => __( 'Theme Button', 'text-domain' ), // Title for dropdown
+			'selector' => 'a', // Element to target in editor
+			'classes'  => 'theme-button' // Class name used for CSS
+		),
+		array(
+			'title'    => __( 'Highlight', 'text-domain' ), // Title for dropdown
+			'inline'   => 'span', // Wrap a span around the selected content
+			'classes'  => 'text-highlight' // Class name used for CSS
+		),
+	);
+	$init_array['style_formats'] = json_encode( $style_formats );
+	return $init_array;
+} 
+add_filter( 'tiny_mce_before_init', 'myprefix_add_format_styles' );*/
+
+//add custom styles to the WordPress editor
+/*function my_custom_styles( $init_array ) {  
+ 
+    $style_formats = array(  
+        // These are the custom styles
+        array(  
+            'title' => 'Red Button',  
+            'block' => 'span',  
+            'classes' => 'red-button',
+            'wrapper' => true,
+        ),  
+        array(  
+            'title' => 'Content Block',  
+            'block' => 'span',  
+            'classes' => 'content-block',
+            'wrapper' => true,
+        ),
+        array(  
+            'title' => 'Highlighter',  
+            'block' => 'span',  
+            'classes' => 'highlighter',
+            'wrapper' => true,
+        ),
+    );  
+    // Insert the array, JSON ENCODED, into 'style_formats'
+    $init_array['style_formats'] = json_encode( $style_formats );  
+    
+    return $init_array;  
+  
+}
+add_filter( 'tiny_mce_before_init', 'my_custom_styles' );*/
+
+/*add_filter( 'default_content', 't5_preset_editor_content', 10, 2 );
 
 
+function t5_preset_editor_content( $content, $post )
+{
+    if ( '' !== $content or 'post' !== $post->post_type )
+    {
+        return $content ='asdf';
+    }
+
+    return 'This is the <em>default</em> content. You may customize it.';
+}
+
+function wpdocs_theme_add_editor_styles2() {
+    $font_url = str_replace( ',', '%2C', '//fonts.googleapis.com/css?family=Lato:300,400,700' );
+    add_editor_style( $font_url );
+}
+add_action( 'after_setup_theme', 'wpdocs_theme_add_editor_styles2' );*/
+
+# This sets the Visual Editor as default #
+//add_filter( 'wp_default_editor', create_function('', 'return "tinymce";') );
+
+# This sets the HTML Editor as default #
+//add_filter( 'wp_default_editor', create_function('', 'return "html";') );
+
+/*function enable_more_buttons($buttons) {
+
+$buttons[] = 'fontselect';
+$buttons[] = 'fontsizeselect';
+$buttons[] = 'styleselect';
+$buttons[] = 'backcolor';
+$buttons[] = 'newdocument';
+$buttons[] = 'cut';
+$buttons[] = 'copy';
+$buttons[] = 'charmap';
+$buttons[] = 'hr';
+$buttons[] = 'visualaid';
+
+return $buttons;
+}
+add_filter('mce_buttons_3', 'enable_more_buttons');
+
+add_filter( 'tiny_mce_before_init', 'myformatTinyMCE' );
+function myformatTinyMCE( $in ) {
+
+$in['wordpress_adv_hidden'] = FALSE;
+
+return $in;
+}*/
 
 
+add_filter( 'default_content', 'my_editor_content' );
+function my_editor_content( $content ) {
+    $content = "If you like this post, then please consider retweeting it or sharing it on Facebook.";
+    return $content;
+}
