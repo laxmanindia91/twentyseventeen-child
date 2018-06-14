@@ -1110,8 +1110,8 @@ add_filter('pre_site_transient_update_plugins','remove_core_updates1');
 add_filter('pre_site_transient_update_themes','remove_core_updates1');
 
 
-add_action('after_setup_theme','remove_core_updates');
-function remove_core_updates()
+add_action('after_setup_theme','remove_core_updates22');
+function remove_core_updates22()
 {
 if(! current_user_can('update_core')){return;}
 add_action('init', create_function('$a',"remove_action( 'init', 'wp_version_check' );"),2);
@@ -1905,3 +1905,11 @@ function my_editor_content( $content ) {
     $content = "If you like this post, then please consider retweeting it or sharing it on Facebook.";
     return $content;
 }
+
+/*function to add async to all scripts*/
+function js_async_attr($tag){
+
+# Add async to all remaining scripts
+return str_replace( ' src', ' async="async" src', $tag );
+}
+add_filter( 'script_loader_tag', 'js_async_attr', 10 );
